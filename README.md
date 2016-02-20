@@ -1,3 +1,9 @@
+### Important
+
+This fork is intended for AWS EC2 g2 instances, following [this](https://github.com/rbgirshick/py-faster-rcnn/issues/2) thread.
+
+Be careful to alter *Makefile.config* according to the linked thread, when compiling Caffe.
+
 ### Disclaimer
 
 The official Faster R-CNN code (written in MATLAB) is available [here](https://github.com/ShaoqingRen/faster_rcnn).
