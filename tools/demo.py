@@ -34,7 +34,9 @@ CLASSES = ('__background__',
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
         'zf': ('ZF',
-                  'ZF_faster_rcnn_final.caffemodel')}
+                  'ZF_faster_rcnn_final.caffemodel'),
+        'resnet': ('ResNet',
+                    'ResNet50.caffemodel')}
 
 
 def vis_detections(im, class_name, dets, thresh=0.5):
