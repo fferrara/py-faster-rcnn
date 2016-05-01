@@ -20,7 +20,7 @@ class turtle(imdb):
         self._image_ext = ['.jpg', '.png', '.JPEG', '.JPG']
         self._image_index = self._load_image_set_index()
         # Default to roidb handler
-        self._roidb_handler = self.roidb_builder
+        # self._roidb_handler = self.roidb_builder
 
         # Specific config options
         self.config = {'cleanup'  : True,
@@ -65,35 +65,54 @@ class turtle(imdb):
                 'Path does not exist: {}'.format(image_path)
         return image_path
 
-    def roidb_builder(self):
-        """
-        Return the database of regions of interest.
-        Region of interest are computed with Multibox.
-        Ground-truth ROIs are also included.
-        This function loads/saves from/to a cache file to speed up future calls.
-        """
-        cache_file = os.path.join(self.cache_path,
-                                  self.name + '_multibox_roidb.pkl')
-
-        if os.path.exists(cache_file):
-            with open(cache_file, 'rb') as fid:
-                roidb = cPickle.load(fid)
-            print '{} ss roidb loaded from {}'.format(self.name, cache_file)
-            return roidb
-
+    def rpn_roidb(self):
         if self._image_set != 'test':
             gt_roidb = self.gt_roidb()
-            ss_roidb = self._load_multibox_roidb(gt_roidb)
-            roidb = datasets.imdb.merge_roidbs(gt_roidb, ss_roidb)
+            rpn_roidb = self._load_rpn_roidb(gt_roidb)
+            roidb = imdb.merge_roidbs(gt_roidb, rpn_roidb)
         else:
-            roidb = self._load_multibox_roidb(None)
-            print len(roidb)
+            roidb = self._load_rpn_roidb(None)
 
-        with open(cache_file, 'wb') as fid:
-                cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
-
-        print 'wrote ss roidb to {}'.format(cache_file)
         return roidb
+
+    def _load_rpn_roidb(self, gt_roidb):
+        filename = self.config['rpn_file']
+        print 'loading {}'.format(filename)
+        assert os.path.exists(filename), \
+            'rpn data not found at: {}'.format(filename)
+        with open(filename, 'rb') as f:
+            box_list = cPickle.load(f)
+        return self.create_roidb_from_box_list(box_list, gt_roidb)
+
+    # def roidb_builder(self):
+    #     """
+    #     Return the database of regions of interest.
+    #     Region of interest are computed with Multibox.
+    #     Ground-truth ROIs are also included.
+    #     This function loads/saves from/to a cache file to speed up future calls.
+    #     """
+    #     cache_file = os.path.join(self.cache_path,
+    #                               self.name + '_multibox_roidb.pkl')
+    #
+    #     if os.path.exists(cache_file):
+    #         with open(cache_file, 'rb') as fid:
+    #             roidb = cPickle.load(fid)
+    #         print '{} ss roidb loaded from {}'.format(self.name, cache_file)
+    #         return roidb
+    #
+    #     if self._image_set != 'test':
+    #         gt_roidb = self.gt_roidb()
+    #         ss_roidb = self._load_multibox_roidb(gt_roidb)
+    #         roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
+    #     else:
+    #         roidb = self._load_multibox_roidb(None)
+    #         print len(roidb)
+    #
+    #     with open(cache_file, 'wb') as fid:
+    #             cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
+    #
+    #     print 'wrote ss roidb to {}'.format(cache_file)
+    #     return roidb
 
     def gt_roidb(self):
         """
@@ -112,22 +131,22 @@ class turtle(imdb):
         print 'wrote gt roidb to {}'.format(cache_file)
 
         return gt_roidb
-
-    def _load_multibox_roidb(self, gt_roidb):
-        # load multibox file
-        # respectively train_multibox.pkl and test_multibox.pkl
-        filename = os.path.abspath(os.path.join(self._data_path,
-                                                self.name + '_multibox.pkl'))
-        assert os.path.exists(filename), \
-               'Multibox data not found at: {}'.format(filename)
-        with open(filename, 'rb') as fid:
-            raw_data = cPickle.load(fid)
-
-        # ATTENZIONE: CHECK ORDINE COORDINATE
-        # ORA x1 y1 x2 y2
-        # box_list = []
-        # for i in xrange(raw_data.shape[0]):
-        #         raw_data[i] = raw_data[i][:, (1, 0, 3, 2)]
+    #
+    # def _load_multibox_roidb(self, gt_roidb):
+    #     # load multibox file
+    #     # respectively train_multibox.pkl and test_multibox.pkl
+    #     filename = os.path.abspath(os.path.join(self._data_path,
+    #                                             self.name + '_multibox.pkl'))
+    #     assert os.path.exists(filename), \
+    #            'Multibox data not found at: {}'.format(filename)
+    #     with open(filename, 'rb') as fid:
+    #         raw_data = cPickle.load(fid)
+    #
+    #     # ATTENZIONE: CHECK ORDINE COORDINATE
+    #     # ORA x1 y1 x2 y2
+    #     # box_list = []
+    #     # for i in xrange(raw_data.shape[0]):
+    #     #         raw_data[i] = raw_data[i][:, (1, 0, 3, 2)]
 
         return self.create_roidb_from_box_list(raw_data, gt_roidb)
 
