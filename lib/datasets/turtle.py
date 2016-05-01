@@ -1,7 +1,5 @@
-import datasets
-import datasets.turtle
 import os
-import datasets.imdb
+from datasets.imdb import imdb
 import xml.dom.minidom as minidom
 import numpy as np
 import scipy.sparse
@@ -10,9 +8,9 @@ import utils.cython_bbox
 import cPickle
 import subprocess
 
-class turtle(datasets.imdb):
+class turtle(imdb):
     def __init__(self, image_set, devkit_path):
-        datasets.imdb.__init__(self, image_set)
+        imdb.__init__(self, image_set)
         self._image_set = image_set
         self._devkit_path = devkit_path
         self._data_path = os.path.join(self._devkit_path, 'data')
